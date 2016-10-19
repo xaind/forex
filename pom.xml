@@ -6,6 +6,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dukascopy.dds2</groupId>
 	<artifactId>JForex-SDK</artifactId>
@@ -20,6 +21,11 @@
 			<name>Dukascopy public repository</name>
 			<url>http://www.dukascopy.com/client/jforexlib/publicrepo/</url>
 		</repository>
+		<repository>
+	      <id>central2</id>
+	      <name>Maven Repository Switchboard</name>
+	      <url>http://repo1.maven.org/maven2</url>
+	    </repository>
 	</repositories>
 	<dependencies>
 		<dependency>
