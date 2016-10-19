@@ -26,15 +26,17 @@ import com.dukascopy.api.Instrument;
 import com.dukascopy.api.JFException;
 import com.dukascopy.api.Period;
 
-public class PerfectTenStrategy implements IStrategy {
+public class HolyTrinityStrategy implements IStrategy {
 
+	static final double BASE_LOT_SIZE = 0.01;
+	static final double PROFIT_AMOUNT = 10;
+	
 	volatile AtomicInteger orderId;
 	volatile IContext context;
 	volatile Date currentDate;
 	
-	volatile Basket longBasket, shortBasket;
+	volatile Basket redBasket, blueBasket;
 	
-	final double profitAmount = 10;
 	
 	// Track the ratio of each currency to the USD
 	volatile Map<ICurrency, Double> ratios;
@@ -45,44 +47,47 @@ public class PerfectTenStrategy implements IStrategy {
 		currentDate = new Date();
 		this.orderId = new AtomicInteger();
 		
-		longBasket = new Basket("LONG");
+		redBasket = new Basket("RED");
 
-		longBasket.addInstrumentInfo(Instrument.EURUSD, OrderCommand.BUY);
-		longBasket.addInstrumentInfo(Instrument.EURGBP, OrderCommand.SELL);
-		longBasket.addInstrumentInfo(Instrument.EURAUD, OrderCommand.BUY);
-		longBasket.addInstrumentInfo(Instrument.EURJPY, OrderCommand.SELL);
-		longBasket.addInstrumentInfo(Instrument.GBPUSD, OrderCommand.SELL);
-		longBasket.addInstrumentInfo(Instrument.GBPJPY, OrderCommand.BUY);
-		longBasket.addInstrumentInfo(Instrument.GBPAUD, OrderCommand.SELL);
-		longBasket.addInstrumentInfo(Instrument.USDJPY, OrderCommand.SELL);
-		longBasket.addInstrumentInfo(Instrument.AUDJPY, OrderCommand.BUY);
-		longBasket.addInstrumentInfo(Instrument.AUDUSD, OrderCommand.SELL);
+		redBasket.addInstrumentInfo(Instrument.EURUSD, OrderCommand.BUY);
+		redBasket.addInstrumentInfo(Instrument.EURGBP, OrderCommand.SELL);
+		redBasket.addInstrumentInfo(Instrument.GBPUSD, OrderCommand.SELL);
+		//redBasket.addInstrumentInfo(Instrument.EURJPY, OrderCommand.SELL);
+		//redBasket.addInstrumentInfo(Instrument.GBPJPY, OrderCommand.BUY);
+		//redBasket.addInstrumentInfo(Instrument.USDJPY, OrderCommand.SELL);
+		//redBasket.addInstrumentInfo(Instrument.GBPAUD, OrderCommand.SELL);
+		//redBasket.addInstrumentInfo(Instrument.EURAUD, OrderCommand.BUY);
+		//redBasket.addInstrumentInfo(Instrument.AUDJPY, OrderCommand.BUY);
+		//redBasket.addInstrumentInfo(Instrument.AUDUSD, OrderCommand.SELL);
 
-		shortBasket = new Basket("SHORT");
+		blueBasket = new Basket("BLUE");
 
-		// The short basket has opposite order commands to the long basket
-		for (InstrumentInfo instrumentInfo : longBasket.instruments) {
-			shortBasket.addInstrumentInfo(instrumentInfo.instrument, instrumentInfo.inverseOrderCommand());
+		// The blue basket has opposite order commands to the red basket
+		for (InstrumentInfo instrumentInfo : redBasket.instruments) {
+			blueBasket.addInstrumentInfo(instrumentInfo.instrument, instrumentInfo.inverseOrderCommand());
 		}
 	}
 
 	@Override
 	public void onTick(Instrument instrument, ITick tick) throws JFException {
-		longBasket.check();
-		shortBasket.check();
+		redBasket.check();
+		blueBasket.check();
 	}
 
 	@Override
 	public void onBar(Instrument instrument, Period period, IBar askBar, IBar bidBar) throws JFException {
 		if (ratios == null) {
-			longBasket.open();
-			shortBasket.open();
+			redBasket.open();
+			blueBasket.open();
 		}
 	}
 
 	@Override
 	public void onMessage(IMessage message) throws JFException {
-		// TODO Auto-generated method stub
+		switch (message.getType()) {
+		case 
+			
+		}
 
 	}
 
@@ -93,14 +98,14 @@ public class PerfectTenStrategy implements IStrategy {
 	@Override
 	public void onStop() throws JFException {
 		log("LONG Basket Results:", true);
-		log(longBasket.getProfitStats());
-		log(longBasket.getOrderStats());
-		log(longBasket.getWinPct());
+		log(redBasket.getProfitStats());
+		log(redBasket.getOrderStats());
+		log(redBasket.getWinPct());
 		
 		log("SHORT Basket Results:", true);
-		log(shortBasket.getProfitStats());
-		log(shortBasket.getOrderStats());
-		log(shortBasket.getWinPct());
+		log(blueBasket.getProfitStats());
+		log(blueBasket.getOrderStats());
+		log(blueBasket.getWinPct());
 		
 		log("");
 	}
@@ -111,7 +116,7 @@ public class PerfectTenStrategy implements IStrategy {
 	void updateRatios() throws JFException {
 		ratios = new HashMap<>();
 		
-		for (InstrumentInfo info : longBasket.instruments) {
+		for (InstrumentInfo info : redBasket.instruments) {
 			if ("USD".equals(info.instrument.getPrimaryJFCurrency().getCurrencyCode())) {
 				ratios.put(info.instrument.getSecondaryJFCurrency(), 1.0 / getCurrentPrice(info));
 			} else if ("USD".equals(info.instrument.getSecondaryJFCurrency().getCurrencyCode())) {
@@ -181,7 +186,8 @@ public class PerfectTenStrategy implements IStrategy {
 		}
 		
 		double getLotSize(InstrumentInfo info) {
-			double lotSize =  0.01;
+			Double ratio = ratios.get(info.instrument.getPrimaryJFCurrency());
+			double lotSize =  BASE_LOT_SIZE * ratio;
 			
 			if (lotSize < 0.001) {
 				lotSize = 0.001;
@@ -198,7 +204,7 @@ public class PerfectTenStrategy implements IStrategy {
 					profit += order.getProfitLossInAccountCurrency();
 				}
 
-				if (profit > profitAmount) {
+				if (profit > PROFIT_AMOUNT) {
 					close();
 				}
 				
@@ -220,7 +226,7 @@ public class PerfectTenStrategy implements IStrategy {
 		}
 		
 		String getProfitStats() {
-			return "Total Profit: $" + round(longBasket.profit, 2) + " (" + longBasket.pips + "pips)";
+			return "Total Profit: $" + round(redBasket.profit, 2) + " (" + redBasket.pips + "pips)";
 		}
 		
 		String getOrderStats() {
