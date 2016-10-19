@@ -85,10 +85,17 @@ public class HolyTrinityStrategy implements IStrategy {
 	@Override
 	public void onMessage(IMessage message) throws JFException {
 		switch (message.getType()) {
-		case 
-			
+			case ORDER_FILL_OK:
+				log("Filled" + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + ")");
+				break;
+			case ORDER_CLOSE_OK:
+				log("Closed " + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + "). Profit = $" + round(message.getOrder().getProfitLossInAccountCurrency(), 2));
+				break;
+			case ORDER_FILL_REJECTED:
+				log("Rejected " + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + ")");
+				break;
+			default:			
 		}
-
 	}
 
 	@Override
