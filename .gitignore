@@ -3,3 +3,6 @@
 *.settings
 *.prefs
 target/
+*.log
+.settings/org.eclipse.jdt.core.prefs
+*.prefs

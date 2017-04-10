@@ -29,18 +29,24 @@
  */
 package singlejartest;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TimeZone;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.LoadingProgressListener;
 import com.dukascopy.api.system.ISystemListener;
 import com.dukascopy.api.system.ITesterClient;
+import com.dukascopy.api.system.ITesterClient.DataLoadingMethod;
 import com.dukascopy.api.system.TesterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Future;
+import jforex.strategies.HolyTrinityStrategy;
 
 /**
  * This small program demonstrates how to initialize Dukascopy tester and start a strategy
@@ -51,9 +57,9 @@ public class TesterMain {
     //url of the DEMO jnlp
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
     //user name
-    private static String userName = "username";
+    private static String userName = "DEMO2yDksp";
     //password
-    private static String password = "password";
+    private static String password = "yDksp";
 
     public static void main(String[] args) throws Exception {
         //get the instance of the IClient interface
@@ -109,19 +115,28 @@ public class TesterMain {
         //set instruments that will be used in testing
         Set<Instrument> instruments = new HashSet<>();
         instruments.add(Instrument.EURUSD);
+        instruments.add(Instrument.EURGBP);
+        instruments.add(Instrument.GBPUSD);
         LOGGER.info("Subscribing instruments...");
         client.setSubscribedInstruments(instruments);
+        
         //setting initial deposit
-        client.setInitialDeposit(Instrument.EURUSD.getSecondaryJFCurrency(), 50000);
-        //load data
-        LOGGER.info("Downloading data");
-        Future<?> future = client.downloadData(null);
-        //wait for downloading to complete
-        future.get();
-                
-        //start the strategy
+        client.setInitialDeposit(Instrument.EURUSD.getSecondaryJFCurrency(), 10000);
+        
+   		// Set the date range
+   		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+   		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        Date dateFrom = dateFormat.parse("20161001");
+        Date dateTo = dateFormat.parse("20161019");
+
+        client.setDataInterval(DataLoadingMethod.ALL_TICKS, dateFrom.getTime(), dateTo.getTime());
+        
+        LOGGER.info("Downloading data...");
+        client.downloadData(null).get();
+        
+        // Start the strategy
         LOGGER.info("Starting strategy");
-        client.startStrategy(new MA_Play(), new LoadingProgressListener() {
+        client.startStrategy(new HolyTrinityStrategy(), new LoadingProgressListener() {
             @Override
             public void dataLoaded(long startTime, long endTime, long currentTime, String information) {
                 LOGGER.info(information);
