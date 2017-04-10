@@ -85,8 +85,20 @@ public class HolyTrinityStrategy implements IStrategy {
 	@Override
 	public void onMessage(IMessage message) throws JFException {
 		switch (message.getType()) {
-		case 
-			
+			case ORDER_FILL_OK:
+				
+				
+				break;
+			case ORDER_CLOSE_OK:
+				
+				
+				break;
+			case ORDER_FILL_REJECTED:
+	
+	
+				break;
+			default:
+				// do nothing
 		}
 
 	}
