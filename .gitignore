@@ -1,8 +1,7 @@
-*.classpath
-*.project
-*.settings
-*.prefs
+.project
+.classpath
+.settings
 target/
-*.log
-.settings/org.eclipse.jdt.core.prefs
-*.prefs
+reports/
+assemblies/
+logs/
