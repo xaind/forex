@@ -1,0 +1,165 @@
+20:04:35.234 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:04:38.559 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:04:43.581 ERROR com.dukascopy.charts.data.datacache.filtering.FilterManager - Couldn't load precise weekend [2016-10-07 21:00:00:000 - 2016-10-09 21:00:00:000], using approximate.
+20:10:52.551 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:10:55.938 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:11:47.221 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:11:55.197 ERROR com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner - Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:11:55.204 ERROR com.dukascopy.api.impl.connect.TesterClientImpl$DefaultStrategyExceptionHandler - Exception thrown while running onBar method: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:11:55.239 ERROR singlejartest.Main - C:\report.html (Access is denied)
+java.io.FileNotFoundException: C:\report.html (Access is denied)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.dukascopy.api.impl.connect.TesterClientImpl.createReport(TesterClientImpl.java:1591)
+	at singlejartest.TesterMain$1.onStop(TesterMain.java:79)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$4.onStop(TesterClientImpl.java:641)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$TesterLoadingProgressListener.loadingFinished(TesterClientImpl.java:1829)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:456)
+	at java.lang.Thread.run(Unknown Source)
+20:13:16.588 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:13:19.948 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:13:23.984 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:13:27.794 ERROR com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner - Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:13:27.804 ERROR com.dukascopy.api.impl.connect.TesterClientImpl$DefaultStrategyExceptionHandler - Exception thrown while running onBar method: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:13:27.825 ERROR singlejartest.Main - C:\report.html (Access is denied)
+java.io.FileNotFoundException: C:\report.html (Access is denied)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.dukascopy.api.impl.connect.TesterClientImpl.createReport(TesterClientImpl.java:1591)
+	at singlejartest.TesterMain$1.onStop(TesterMain.java:76)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$4.onStop(TesterClientImpl.java:641)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$TesterLoadingProgressListener.loadingFinished(TesterClientImpl.java:1829)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:456)
+	at java.lang.Thread.run(Unknown Source)
+20:13:58.583 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:14:01.563 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:14:05.638 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:15:46.913 ERROR com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner - Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:15:46.929 ERROR com.dukascopy.api.impl.connect.TesterClientImpl$DefaultStrategyExceptionHandler - Exception thrown while running onBar method: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+com.dukascopy.api.JFException: Label inconsistent (Label must not be null, longer than 64 symbols, contain restricted symbols or start with number)
+	at com.dukascopy.api.impl.connect.validation.OrderValidator.validateLabel(OrderValidator.java:61)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:522)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.TesterCustodian.submitOrder(TesterCustodian.java:243)
+	at jforex.strategies.HolyTrinityStrategy$Basket.open(HolyTrinityStrategy.java:194)
+	at jforex.strategies.HolyTrinityStrategy.onBar(HolyTrinityStrategy.java:82)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.AbstractStrategyRunner.historicalCandleReceived(AbstractStrategyRunner.java:443)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:396)
+	at java.lang.Thread.run(Unknown Source)
+20:15:46.941 ERROR singlejartest.Main - C:\report.html (Access is denied)
+java.io.FileNotFoundException: C:\report.html (Access is denied)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.dukascopy.api.impl.connect.TesterClientImpl.createReport(TesterClientImpl.java:1591)
+	at singlejartest.TesterMain$1.onStop(TesterMain.java:76)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$4.onStop(TesterClientImpl.java:641)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$TesterLoadingProgressListener.loadingFinished(TesterClientImpl.java:1829)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:456)
+	at java.lang.Thread.run(Unknown Source)
+20:16:14.069 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:16:17.480 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:16:21.530 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:18:30.997 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:18:34.538 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:18:38.920 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:21:06.607 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:21:10.378 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:21:14.640 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:23:22.073 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:23:25.477 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:23:28.999 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:27:16.781 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:27:20.133 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:27:24.147 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:30:05.224 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:30:08.619 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:30:12.448 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:34:17.842 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:34:21.229 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:34:25.139 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:36:42.481 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:36:45.844 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:36:49.426 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:39:37.000 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:39:40.368 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:39:43.979 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:44:53.919 ERROR singlejartest.Main - C:\report.html (Access is denied)
+java.io.FileNotFoundException: C:\report.html (Access is denied)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.dukascopy.api.impl.connect.TesterClientImpl.createReport(TesterClientImpl.java:1591)
+	at singlejartest.TesterMain$1.onStop(TesterMain.java:76)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$4.onStop(TesterClientImpl.java:641)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$TesterLoadingProgressListener.loadingFinished(TesterClientImpl.java:1829)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:487)
+	at java.lang.Thread.run(Unknown Source)
+20:48:14.579 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:48:17.946 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:48:21.818 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:53:48.863 ERROR singlejartest.Main - C:\report.html (Access is denied)
+java.io.FileNotFoundException: C:\report.html (Access is denied)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.dukascopy.api.impl.connect.TesterClientImpl.createReport(TesterClientImpl.java:1591)
+	at singlejartest.TesterMain$1.onStop(TesterMain.java:76)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$4.onStop(TesterClientImpl.java:641)
+	at com.dukascopy.api.impl.connect.TesterClientImpl$TesterLoadingProgressListener.loadingFinished(TesterClientImpl.java:1829)
+	at com.dukascopy.dds2.greed.agent.strategy.tester.StrategyRunner.run(StrategyRunner.java:487)
+	at java.lang.Thread.run(Unknown Source)
+20:54:54.484 WARN  com.dukascopy.charts.data.datacache.FeedDataProvider - JStore is disabled for the current user
+20:54:58.122 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received
+20:55:01.989 WARN  com.dukascopy.api.impl.connect.WLabelData - White Label Image is not received

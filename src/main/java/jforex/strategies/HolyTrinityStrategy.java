@@ -29,7 +29,7 @@ import com.dukascopy.api.Period;
 public class HolyTrinityStrategy implements IStrategy {
 
 	static final double BASE_LOT_SIZE = 0.01;
-	static final double PROFIT_AMOUNT = 10;
+	static final double PROFIT_AMOUNT = 100;
 	
 	volatile AtomicInteger orderId;
 	volatile IContext context;
@@ -66,12 +66,20 @@ public class HolyTrinityStrategy implements IStrategy {
 		for (InstrumentInfo instrumentInfo : redBasket.instruments) {
 			blueBasket.addInstrumentInfo(instrumentInfo.instrument, instrumentInfo.inverseOrderCommand());
 		}
+		
+		log("Strategy initialised...", true);
 	}
 
 	@Override
-	public void onTick(Instrument instrument, ITick tick) throws JFException {
-		redBasket.check();
-		blueBasket.check();
+	public synchronized void onTick(Instrument instrument, ITick tick) throws JFException {
+		double profit = redBasket.check();
+		profit += blueBasket.check();
+		
+
+		if (Math.abs(profit) > PROFIT_AMOUNT) {
+			redBasket.close();
+			blueBasket.close();
+		}
 	}
 
 	@Override
@@ -80,41 +88,45 @@ public class HolyTrinityStrategy implements IStrategy {
 			redBasket.open();
 			blueBasket.open();
 		}
+		
+		if (Period.DAILY.equals(period) && Instrument.EURUSD.equals(instrument)) {
+			log("Equity: $" + round(context.getAccount().getEquity(), 2), true);
+		}
 	}
 
 	@Override
 	public void onMessage(IMessage message) throws JFException {
+		currentDate = new Date(message.getCreationTime());
 		switch (message.getType()) {
 			case ORDER_FILL_OK:
-				log("Filled" + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + ")");
+				log("Filled " + getMessageText(message));
 				break;
 			case ORDER_CLOSE_OK:
-				log("Closed " + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + "). Profit = $" + round(message.getOrder().getProfitLossInAccountCurrency(), 2));
-				break;
-			case ORDER_FILL_REJECTED:
-				log("Rejected " + message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + ")");
+				log("Closed " + getMessageText(message) + ". Profit = $" + round(message.getOrder().getProfitLossInAccountCurrency(), 2));
 				break;
 			default:			
+				//log(message.getType() + " " + getMessageText(message));
 		}
 	}
-
+	
 	@Override
 	public void onAccount(IAccount account) throws JFException {
 	}
 
 	@Override
 	public void onStop() throws JFException {
-		log("LONG Basket Results:", true);
+		log("RED Basket Results:", true);
 		log(redBasket.getProfitStats());
 		log(redBasket.getOrderStats());
 		log(redBasket.getWinPct());
 		
-		log("SHORT Basket Results:", true);
+		log("BLUE Basket Results:", true);
 		log(blueBasket.getProfitStats());
 		log(blueBasket.getOrderStats());
 		log(blueBasket.getWinPct());
 		
 		log("");
+		log("Strategy completed.", true);
 	}
 	
 	// -------------------------------------------------------------------------------------------
@@ -143,7 +155,7 @@ public class HolyTrinityStrategy implements IStrategy {
 		if (line) {
 			out.println("----------------------------------------------------------------------------------------");
 		}
-		out.println(format.format(currentDate) + "-" + message);
+		out.println(format.format(currentDate) + " - " + message);
 	}
 	
 	void log(String message) {
@@ -154,6 +166,10 @@ public class HolyTrinityStrategy implements IStrategy {
 		BigDecimal bd = new BigDecimal(value);
 	    bd = bd.setScale(precision, RoundingMode.HALF_UP);
 	    return bd.doubleValue(); 
+	}
+	
+	String getMessageText(IMessage message) {
+		return message.getOrder().getLabel() + " @ $" + round(message.getOrder().getOpenPrice(), 2) + " (" + message.getOrder().getAmount() + ")";
 	}
 	
 	// -------------------------------------------------------------------------------------------
@@ -182,6 +198,7 @@ public class HolyTrinityStrategy implements IStrategy {
 		synchronized void open() throws JFException {
 			updateRatios();
 			
+			log("Opening orders for " + name + " basket...", true);
 			for (InstrumentInfo info : instruments) {
 				IOrder order = context.getEngine().submitOrder(getLabel(info), info.instrument, info.orderCommand, getLotSize(info));
 				orders.add(order);
@@ -189,7 +206,7 @@ public class HolyTrinityStrategy implements IStrategy {
 		}
 		
 		String getLabel(InstrumentInfo info) {
-			return name + "-" + info.instrument + "-" + info.orderCommand + "-" + orderId.getAndIncrement();
+			return name + "_" + info.instrument.name() + "_" + info.orderCommand + "_" + orderId.getAndIncrement();
 		}
 		
 		double getLotSize(InstrumentInfo info) {
@@ -203,37 +220,41 @@ public class HolyTrinityStrategy implements IStrategy {
 			return round(lotSize, 3);
 		}
 		
-		synchronized void check() throws JFException {
+		synchronized double check() throws JFException {
+			double profit = 0;
 			if (!orders.isEmpty()) {
-				double profit = 0;
-				
 				for (IOrder order : orders) {
 					profit += order.getProfitLossInAccountCurrency();
 				}
-
-				if (profit > PROFIT_AMOUNT) {
-					close();
-				}
-				
 			}
+			return profit;
 		}
 		
 		synchronized void close() throws JFException {
+			double currentProfit = 0;
+			double currentPips = 0;
+			
 			for (IOrder order : orders) {
 				if (State.FILLED.equals(order.getState()) || State.OPENED.equals(order.getState())) {
 					order.close();
 					order.waitForUpdate(State.CLOSED, State.CANCELED);
-					profit += order.getProfitLossInAccountCurrency();
-					pips += order.getProfitLossInPips();
+					currentProfit += order.getProfitLossInAccountCurrency();
+					currentPips += order.getProfitLossInPips();
 				}
 			}
+			
+			profit += currentProfit;
+			pips += currentPips;
+			
+			log("Closed " + name + "  basket: Profit = $" + round(currentProfit, 2) + " (" + round(currentPips, 0) + ")", true);
+			log("Equity: $" + round(context.getAccount().getEquity(), 2));
 			
 			orders.clear();
 			open();
 		}
 		
 		String getProfitStats() {
-			return "Total Profit: $" + round(redBasket.profit, 2) + " (" + redBasket.pips + "pips)";
+			return "Total Profit: $" + round(profit, 2) + " (" + pips + "pips)";
 		}
 		
 		String getOrderStats() {

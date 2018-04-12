@@ -29,7 +29,6 @@
  */
 package singlejartest;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -46,25 +45,22 @@ import com.dukascopy.api.system.ITesterClient;
 import com.dukascopy.api.system.ITesterClient.DataLoadingMethod;
 import com.dukascopy.api.system.TesterFactory;
 
-import jforex.strategies.HolyTrinityStrategy;
+import jforex.strategies.RollTheDiceStrategy;
 
 /**
  * This small program demonstrates how to initialize Dukascopy tester and start a strategy
  */
 public class TesterMain {
+	
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    //url of the DEMO jnlp
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
-    //user name
+
     private static String userName = "DEMO2yDksp";
-    //password
     private static String password = "yDksp";
 
     public static void main(String[] args) throws Exception {
-        //get the instance of the IClient interface
         final ITesterClient client = TesterFactory.getDefaultInstance();
-        //set the listener that will receive system events
         client.setSystemListener(new ISystemListener() {
             @Override
             public void onStart(long processId) {
@@ -74,12 +70,12 @@ public class TesterMain {
             @Override
             public void onStop(long processId) {
                 LOGGER.info("Strategy stopped: " + processId);
-                File reportFile = new File("C:\\report.html");
-                try {
-                    client.createReport(processId, reportFile);
-                } catch (Exception e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
+//                File reportFile = new File("C:\\report.html");
+//                try {
+//                    client.createReport(processId, reportFile);
+//                } catch (Exception e) {
+//                    LOGGER.error(e.getMessage(), e);
+//                }
                 if (client.getStartedStrategies().size() == 0) {
                     System.exit(0);
                 }
@@ -87,7 +83,7 @@ public class TesterMain {
 
             @Override
             public void onConnect() {
-                LOGGER.info("Connected");
+                LOGGER.info("Connected...");
             }
 
             @Override
@@ -97,37 +93,42 @@ public class TesterMain {
         });
 
         LOGGER.info("Connecting...");
-        //connect to the server using jnlp, user name and password
-        //connection is needed for data downloading
         client.connect(jnlpUrl, userName, password);
 
-        //wait for it to connect
-        int i = 10; //wait max ten seconds
+        // Wait 10 seconds for it to connect
+        int i = 10;
         while (i > 0 && !client.isConnected()) {
             Thread.sleep(1000);
             i--;
         }
+        
         if (!client.isConnected()) {
             LOGGER.error("Failed to connect Dukascopy servers");
             System.exit(1);
         }
 
-        //set instruments that will be used in testing
+        // Set instruments that will be used in testing
+        LOGGER.info("Subscribing instruments...");
         Set<Instrument> instruments = new HashSet<>();
         instruments.add(Instrument.EURUSD);
         instruments.add(Instrument.EURGBP);
         instruments.add(Instrument.GBPUSD);
-        LOGGER.info("Subscribing instruments...");
+        instruments.add(Instrument.USDJPY);
+        instruments.add(Instrument.AUDJPY);
+        instruments.add(Instrument.AUDUSD);
+        instruments.add(Instrument.EURAUD);
+        instruments.add(Instrument.GBPJPY);
+        
         client.setSubscribedInstruments(instruments);
         
-        //setting initial deposit
+        // Setting initial deposit
         client.setInitialDeposit(Instrument.EURUSD.getSecondaryJFCurrency(), 10000);
         
    		// Set the date range
    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
    		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Date dateFrom = dateFormat.parse("20161001");
-        Date dateTo = dateFormat.parse("20161019");
+        Date dateFrom = dateFormat.parse("20161003");
+        Date dateTo = dateFormat.parse("20161023");
 
         client.setDataInterval(DataLoadingMethod.ALL_TICKS, dateFrom.getTime(), dateTo.getTime());
         
@@ -135,11 +136,11 @@ public class TesterMain {
         client.downloadData(null).get();
         
         // Start the strategy
-        LOGGER.info("Starting strategy");
-        client.startStrategy(new HolyTrinityStrategy(), new LoadingProgressListener() {
+        LOGGER.info("Starting strategy...");
+        client.startStrategy(new RollTheDiceStrategy(), new LoadingProgressListener() {
             @Override
             public void dataLoaded(long startTime, long endTime, long currentTime, String information) {
-                LOGGER.info(information);
+                //LOGGER.info(information);
             }
 
             @Override
@@ -151,6 +152,5 @@ public class TesterMain {
                 return false;
             }
         });
-        //now it's running
     }
 }
