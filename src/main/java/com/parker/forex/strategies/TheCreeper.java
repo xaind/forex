@@ -54,13 +54,6 @@ public class TheCreeper implements IStrategy {
     volatile IContext context;
     volatile int orderCounter;
 
-    volatile int winCounter;
-    volatile int lossCounter;
-    
-    volatile double totalProfit;
-    volatile double totalLockedProfit;
-    volatile double maxDrawdown;
-    
     volatile int consecutiveLossCounter;
     volatile int maxConsecutiveLossCounter;
     
@@ -71,13 +64,11 @@ public class TheCreeper implements IStrategy {
     volatile List<InstrumentStrategy> strategies;
 
     @Configurable(value = "Base Trade Amount")
-    public final double baseTradeAmount = 1.0;
+    public final double baseTradeAmount = 10.0;
     
     @Configurable(value = "Max Trade Amount")
     public final double maxTradeAmount = 500.0;
     
-    @Configurable(value = "Virtual Result Limit")
-    public final int virtualResultLimit = 20;
     
     // *****************************************************************************************************************
     // Private Methods
@@ -97,11 +88,10 @@ public class TheCreeper implements IStrategy {
         
         context.setSubscribedInstruments(instruments);
 
-        instrumentInfos = new ArrayList<>();
+        strategies  = new ArrayList<>();
         
         for (Instrument instrument : instruments) {
-            instrumentInfos.add(new InstrumentInfo(instrument, OrderCommand.BUY, atrMultiplier));
-            instrumentInfos.add(new InstrumentInfo(instrument, OrderCommand.SELL, atrMultiplier));
+            strategies.add(new InstrumentStrategy(instrument, OrderCommand.BUY));
         }
         
         log("\nStarted the " + getName() + " strategy using " + instrumentInfos.size() + " instruments.");
@@ -375,24 +365,35 @@ public class TheCreeper implements IStrategy {
     
     static class InstrumentStrategy implements Comparable<InstrumentStrategy> {
 
+        final int MAX_HISTORY_SIZE = 20;
+        
         Instrument instrument;
         StrategyType strategyType;
         OrderCommand orderCommand;
         int takeProfitPips;
         
+        double profit;
+        int wins;
+        int losses;
+        long totalTradeDuration;
+        
         OrderCommand virtualOrderCommand;
         double virtualOrderPrice;
-        long virtualOrderTime;
+        long virtualOrderDuration;
         List<Boolean> virtualResults = new ArrayList<>();
         List<Long> virtualOrderDurations = new ArrayList<>();
 
+        InstrumentStrategy(Instrument instrument, StrategyType strategyType) {
+            
+        }
+        
         void onTick(ITick tick) {
             double price = OrderCommand.BUY.equals(this.virtualOrderCommand) ? tick.getAsk() : tick.getBid();
             long time = tick.getTime();
             
             if (virtualOrderPrice == 0) {
                 virtualOrderPrice = price;
-                virtualOrderTime = time;
+                virtualOrderDuration = time;
             } else if (Math.abs(price - virtualOrderPrice) > takeProfitPips) {
                 if (OrderCommand.BUY.equals(virtualOrderCommand) && price > virtualOrderPrice ||
                         OrderCommand.SELL.equals(virtualOrderCommand) && price < virtualOrderPrice) {
@@ -408,18 +409,18 @@ public class TheCreeper implements IStrategy {
                     }
                 }
                 
-                if (virtualResults.size() > virtualResultLimit) {
-                    virtualResults = virtualResults.subList(0, virtualResultLimit);
+                if (virtualResults.size() > MAX_HISTORY_SIZE) {
+                    virtualResults = virtualResults.subList(0, MAX_HISTORY_SIZE);
                 }
                 
-                virtualOrderDurations.add(time - virtualOrderTime);
+                virtualOrderDurations.add(time - virtualOrderDuration);
                 
-                if (virtualOrderDurations.size() > virtualResultLimit) {
-                    virtualOrderDurations = virtualOrderDurations.subList(0, virtualResultLimit);
+                if (virtualOrderDurations.size() > MAX_HISTORY_SIZE) {
+                    virtualOrderDurations = virtualOrderDurations.subList(0, MAX_HISTORY_SIZE);
                 }
                 
                 virtualOrderPrice = price;
-                virtualOrderTime = time;
+                virtualOrderDuration = time;
             }
         }
         
@@ -433,25 +434,38 @@ public class TheCreeper implements IStrategy {
             
             if (orderProfit >= 0) {
                 this.wins++;
-                this.results.add(true);
             } else {
                 this.losses++;
-                this.results.add(false);
             }
             
-            if (this.results.size() > winTradeLimit) {
-                this.results.remove(0);
-            }
-            
-            this.totalTradeTime += 1.0 * (order.getCloseTime() - order.getFillTime()) / MILLIS_IN_DAY;
+            this.totalTradeDuration += 1.0 * (order.getCloseTime() - order.getFillTime());
         }
         
         String getProfitStatus() {
-            return "[profit=$" + round(this.profit, 2) + ", win%=" + round(winPct() * 100, 1) + "%, avgTradeFreq=" + round(this.avgTradeFrequency(), 1) + "/day]";
+            return "[profit=$" + round(this.profit, 2) + ", win%=" + round(winPct(), 1) + "% [" + round(virtualWinPct(), 1) 
+                + "%], avgTradeDuration=" + round(this.avgTradeDuration(), 1) + "days [" + avgVirtualTradeDuration() + "days]]";
         }
         
         double winPct() {
-            if (this.virtualResults.size() > virtualResultLimit) {
+            int totalTrades = wins + losses;
+            if (totalTrades == 0) {
+                return 0;
+            } else {
+                return 100.0 * wins / totalTrades;
+            }
+        }
+        
+        double avgTradeDuration() {
+            int totalTrades = wins + losses;
+            if (totalTrades == 0) {
+                return 0;
+            } else {
+                return totalTradeDuration / totalTrades;
+            }
+        }
+        
+        double virtualWinPct() {
+            if (this.virtualResults.size() > MAX_HISTORY_SIZE) {
                 return 0;
             }
             
@@ -464,20 +478,24 @@ public class TheCreeper implements IStrategy {
             return 1.0 * wins / this.virtualResults.size(); 
         }
         
-        double avgOrderDuration() {
-            if (this.virtualOrderDurations.size() < virtualResultLimit) {
+        double avgVirtualTradeDuration() {
+            if (this.virtualOrderDurations.size() < MAX_HISTORY_SIZE) {
                 return 0;
             } else {
                 return virtualOrderDurations.stream()
-                        .mapToDouble(d -> d)
+                        .mapToDouble(d -> d / MILLIS_IN_DAY)
                         .average()
                         .getAsDouble();
             }
         }
         
+        double round(double value, int precision) {
+            return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).doubleValue();
+        }
+        
         @Override
         public String toString() {
-            return this.instrument + " (" + this.orderCommand + ")";
+            return this.instrument + " (" + this.strategyType + ")";
         }
 
         @Override
