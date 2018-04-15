@@ -56,8 +56,8 @@ public class TesterMain {
 
     private static String jnlpUrl = "http://platform.dukascopy.com/demo/jforex.jnlp";
     
-    private static String userName = "DEMO2BVTQw";
-    private static String password = "BVTQw";
+    private static String userName = "DEMO210037CeoNwEU";
+    private static String password = "CeoNw";
     
     private static ITesterClient client;
     private static String reportsFileLocation = "C:\\report.html";
@@ -68,7 +68,7 @@ public class TesterMain {
         setSystemListener();
         tryToConnect();
         subscribeToInstruments();
-        client.setInitialDeposit(Instrument.AUDUSD.getSecondaryJFCurrency(), 7500);
+        client.setInitialDeposit(Instrument.AUDUSD.getSecondaryJFCurrency(), 10000);
         loadData();
 
         LOGGER.info("Starting strategy...");
@@ -131,9 +131,9 @@ public class TesterMain {
         instruments.add(Instrument.USDJPY);
         instruments.add(Instrument.GBPUSD);
         
-        instruments.add(Instrument.EURJPY);
-        instruments.add(Instrument.EURGBP);
-        instruments.add(Instrument.GBPJPY);
+        //instruments.add(Instrument.EURJPY);
+        //instruments.add(Instrument.EURGBP);
+        //instruments.add(Instrument.GBPJPY);
 
         // instruments.add(Instrument.EURCHF);
         // instruments.add(Instrument.CHFUSD);
