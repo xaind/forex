@@ -60,7 +60,7 @@ public class TesterMain {
     private static String password = "CeoNw";
     
     private static ITesterClient client;
-    private static String reportsFileLocation = "C:\\report.html";
+    private static String reportsFileLocation = "report.html";
 
     public static void main(String[] args) throws Exception {
         client = TesterFactory.getDefaultInstance();
@@ -131,9 +131,9 @@ public class TesterMain {
         instruments.add(Instrument.USDJPY);
         instruments.add(Instrument.GBPUSD);
         
-        //instruments.add(Instrument.EURJPY);
-        //instruments.add(Instrument.EURGBP);
-        //instruments.add(Instrument.GBPJPY);
+        instruments.add(Instrument.EURJPY);
+        instruments.add(Instrument.EURGBP);
+        instruments.add(Instrument.GBPJPY);
 
         // instruments.add(Instrument.EURCHF);
         // instruments.add(Instrument.CHFUSD);
@@ -160,8 +160,8 @@ public class TesterMain {
         // Set the date range
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Date dateFrom = dateFormat.parse("20180101");
-        Date dateTo = dateFormat.parse("20180410");
+        Date dateFrom = dateFormat.parse("20170601");
+        Date dateTo = dateFormat.parse("20171231");
 
         client.setDataInterval(DataLoadingMethod.ALL_TICKS, dateFrom.getTime(), dateTo.getTime());
         client.downloadData(null).get();

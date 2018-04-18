@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-	The following is an example Maven pom file which allows the user to
-	to build JForex-SDK by using the latest version of dependencies
-	from dukascopy public repository with command: mvn clean install
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.dukascopy.dds2</groupId>
-	<artifactId>JForex-3-SDK</artifactId>
-    <version>3.2.22</version>
-	<organization>
-		<name>Dukascopy Bank SA</name>
-		<url>http://www.dukascopy.com</url>
-	</organization>
+	<groupId>com.parker</groupId>
+	<artifactId>forex</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 	<repositories>
 		<repository>
 			<id>dc_public</id>

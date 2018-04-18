@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import com.dukascopy.api.Configurable;
 import com.dukascopy.api.IAccount;
@@ -55,6 +56,7 @@ public class TheCreeper implements IStrategy {
     int consecutiveLossCounter;
     int maxConsecutiveLossCounter;
     
+    double lockedProfit;
     double maxProfit;
     double maxDrawDown;
     
@@ -68,14 +70,13 @@ public class TheCreeper implements IStrategy {
     public final double baseTradeAmount = 10.0;
     
     @Configurable(value = "Max Trade Amount")
-    public final double maxTradeAmount = 500.0;
+    public final double maxTradeAmount = 500;
     
     @Configurable(value = "Max Concurrent Trades")
     public final int maxConcurrentTrades = 5;
     
     @Configurable(value = "Min Win %")
-    public final int minWinPct = 80;
-    
+    public final int minWinPct = 50;
     
     // *****************************************************************************************************************
     // Private Methods
@@ -89,9 +90,9 @@ public class TheCreeper implements IStrategy {
         instruments.add(Instrument.USDJPY);
         instruments.add(Instrument.GBPUSD);
         
-        //instruments.add(Instrument.EURJPY);
-        //instruments.add(Instrument.EURGBP);
-        //instruments.add(Instrument.GBPJPY);
+        instruments.add(Instrument.EURJPY);
+        instruments.add(Instrument.EURGBP);
+        instruments.add(Instrument.GBPJPY);
         
         context.setSubscribedInstruments(instruments);
 
@@ -105,7 +106,7 @@ public class TheCreeper implements IStrategy {
             }
         }
         
-        log("\nStarted the " + getName() + " strategy using " + strategies.size() + " strategies across " + instruments + " instruments.");
+        log("\nStarted the " + getName() + " strategy using " + strategies.size() + " strategies across " + instruments.size() + " instruments.");
     }
     
     private void checkAndTrade(long time) throws JFException {
@@ -154,13 +155,14 @@ public class TheCreeper implements IStrategy {
     private List<InstrumentStrategy> getBestStrategies() {
         List<InstrumentStrategy> bestStrategies = new ArrayList<>();
         for (InstrumentStrategy strategy : this.strategies) {
-            if (strategy.virtualWinPct() >= minWinPct) {
+            if (strategy.virtualWinPct() >= this.minWinPct) {
                 bestStrategies.add(strategy);
             }
         }
         
         Collections.sort(bestStrategies);
-        return bestStrategies;
+        
+        return bestStrategies.subList(0, Math.min(this.maxConcurrentTrades, bestStrategies.size()));
     }
     
     private int getWins() {
@@ -200,14 +202,24 @@ public class TheCreeper implements IStrategy {
     }
     
     private double getLotSize(InstrumentStrategy strategy) throws JFException {
-        double tradeAmount = this.baseTradeAmount * Math.pow(2, this.consecutiveLossCounter);
+        double tradeAmount = this.baseTradeAmount;
+        
+        // Increase the trade amount if we are under the locked profit amount
+        double totalProfit = this.getTotalProfit();
+        if (totalProfit < lockedProfit) {
+            tradeAmount = (lockedProfit - totalProfit) / maxConcurrentTrades + baseTradeAmount;
+            tradeAmount = Math.min(tradeAmount, maxTradeAmount);
+        }
+        
+        // Calculate the lot size
         return Math.max(round((tradeAmount / strategy.takeProfitPips) * 0.01, 3), 0.001);
     }
-
+    
     private void placeOrder(InstrumentStrategy strategy) throws JFException {
-        String label = getName() + "_" + (++orderCounter);
+        String label = getName() + "_" + (++orderCounter) + "_" + strategy.toString();
         double lotSize = getLotSize(strategy);
-        context.getEngine().submitOrder(label, strategy.instrument, strategy.orderCommand, lotSize, 0, 0);
+        IOrder order = context.getEngine().submitOrder(label, strategy.instrument, strategy.orderCommand, lotSize, 0, 0);
+        strategy.order = order;
     }
 
     private void handleMessage(IMessage message) throws JFException {
@@ -247,6 +259,7 @@ public class TheCreeper implements IStrategy {
     private void onOrderClosed(IOrder order) throws JFException {
         double profit = order.getProfitLossInUSD() - order.getCommissionInUSD();
         
+        
         InstrumentStrategy strategy = getStrategy(order);
         strategy.updateProfit(order);
         
@@ -266,12 +279,18 @@ public class TheCreeper implements IStrategy {
         double currentDrawDown = this.maxProfit - totalProfit;
         this.maxDrawDown = Math.max(this.maxDrawDown, currentDrawDown);
         
+        // Recalculate locked profit
+        if (totalProfit > lockedProfit) {
+            lockedProfit = totalProfit;
+        }
+        
         log(order.getLabel(), order.getCloseTime(), "Closed " + strategy + " " + order.getOrderCommand() + " of " + order.getAmount() + " lots for $" + round(profit, 2) + " " 
                 + (profit >= 0 ? "PROFIT" : "LOSS") + ". " + strategy.getProfitStatus());
         
         int wins = this.getWins();
         int losses = this.getLosses();
         double winPct = 100.0 * wins / (wins + losses);
+        
         log("Overall: totalProfit=$" + round(this.getTotalProfit(), 2) + ", winPct=" + round(winPct, 1) + "%, equity=$" + round(context.getAccount().getEquity(), 2) + "]");
         
         checkAndTrade(order.getCloseTime());
@@ -280,7 +299,7 @@ public class TheCreeper implements IStrategy {
     private void outputStats() {
         log("--------------------------------------------------------------------------------------------------");
         log("Strategy: " + getName() + " (" + DATE_FORMAT_MONTH.format(new Date(startTime)) + " to " + DATE_FORMAT_MONTH.format(new Date(endTime)) + ")");
-        log("Parameters: TradeAmount=" + round(baseTradeAmount, 2) + "%, MaxTradeAmount=" + round(maxTradeAmount, 2) + "%");
+        log("Parameters: TradeAmount=$" + round(baseTradeAmount, 2));
         
         double equity = context.getAccount().getEquity();
         double roi = (equity - startEquity) / startEquity * 100.0;
@@ -291,7 +310,7 @@ public class TheCreeper implements IStrategy {
         int wins = this.getWins();
         int losses = this.getLosses();
         double winPct = 100.0 * wins / (wins + losses);
-        log("Total Trades: " + (wins + losses)+ " (" + wins + " wins/" + losses + " losses, win%=" + winPct + ")");
+        log("Total Trades: " + (wins + losses)+ " (" + wins + " wins/" + losses + " losses, win%=" + round(winPct, 1) + "%)");
         
         log("Max Drawdown: $" + round(this.maxDrawDown, 2) + " (consecutiveLosses=" + maxConsecutiveLossCounter + ")");
         log(getName() + " strategy stopped.");
@@ -323,7 +342,17 @@ public class TheCreeper implements IStrategy {
     }
 
     public void onBar(Instrument instrument, Period period, IBar askBar, IBar bidBar) throws JFException {
-        checkAndTrade(askBar.getTime());
+        if (Period.ONE_HOUR.equals(period) && Instrument.EURUSD.equals(instrument)) {
+            checkAndTrade(askBar.getTime());
+        }
+        
+        if (Period.WEEKLY.equals(period) && Instrument.EURUSD.equals(instrument)) {
+            log("--------------------------------------------------------------------------------------------------");
+            log("Weekly Stats", askBar.getTime(), "Profit: $" + round(this.getTotalProfit(), 2) + " (locked=$" + round(this.lockedProfit, 2) + ")");
+            log("Best Strategies:");
+            this.getBestStrategies().stream().forEach(s -> log(">>> " + s.toString(), askBar.getTime(), s.getProfitStatus()));
+            log("--------------------------------------------------------------------------------------------------");
+        }
     }
 
     public void onAccount(IAccount account) throws JFException {
@@ -333,12 +362,13 @@ public class TheCreeper implements IStrategy {
     // Static helper classes
     // *****************************************************************************************************************
     enum StrategyType {
-        TREND, RANGE, BUY, SELL;
+        BUY, SELL;
     }
     
     static class InstrumentStrategy implements Comparable<InstrumentStrategy> {
 
-        final int MAX_HISTORY_SIZE = 20;
+        final int MIN_HISTORY_SIZE = 20;
+        final int MAX_HISTORY_AGE = 21 * 24 * 3600 * 1000;
         
         Instrument instrument;
         StrategyType strategyType;
@@ -354,8 +384,8 @@ public class TheCreeper implements IStrategy {
         
         OrderCommand virtualOrderCommand;
         double virtualOrderPrice;
-        long virtualOrderDuration;
-        List<Boolean> virtualResults = new ArrayList<>();
+        long virtualOrderOpenTime;
+        List<Long> virtualResults = new ArrayList<>();
         List<Long> virtualOrderDurations = new ArrayList<>();
 
         InstrumentStrategy(Instrument instrument, StrategyType strategyType, int takeProfitPips) {
@@ -376,34 +406,29 @@ public class TheCreeper implements IStrategy {
             
             if (virtualOrderPrice == 0) {
                 virtualOrderPrice = price;
-                virtualOrderDuration = time;
-            } else if (Math.abs(price - virtualOrderPrice) > takeProfitPips) {
+                virtualOrderOpenTime = time;
+            } else if (Math.abs(price - virtualOrderPrice) > (takeProfitPips * this.instrument.getPipValue())) {
                 if (OrderCommand.BUY.equals(virtualOrderCommand) && price > virtualOrderPrice ||
                         OrderCommand.SELL.equals(virtualOrderCommand) && price < virtualOrderPrice) {
-                    virtualResults.add(true);
-                    
-                    if (StrategyType.RANGE.equals(strategyType)) {
-                        switchOrderCommand();
-                    }
+                    virtualResults.add(0, time);
                 } else {
-                    virtualResults.add(false);
-                    if (StrategyType.TREND.equals(strategyType)) {
-                        switchOrderCommand();
-                    }
+                    this.virtualResults.add(0, -time);
                 }
                 
-                if (virtualResults.size() > MAX_HISTORY_SIZE) {
-                    virtualResults = virtualResults.subList(0, MAX_HISTORY_SIZE);
+                if (this.virtualResults.size() > MIN_HISTORY_SIZE) {
+                    List<Long> extra = this.virtualResults.subList(MIN_HISTORY_SIZE, this.virtualResults.size());
+                    this.virtualResults = this.virtualResults.subList(0, MIN_HISTORY_SIZE);
+                    this.virtualResults.addAll(extra.stream().filter(r -> (time - Math.abs(r)) < MAX_HISTORY_AGE).collect(Collectors.toList()));
                 }
                 
-                virtualOrderDurations.add(time - virtualOrderDuration);
+                virtualOrderDurations.add(time - virtualOrderOpenTime);
                 
-                if (virtualOrderDurations.size() > MAX_HISTORY_SIZE) {
-                    virtualOrderDurations = virtualOrderDurations.subList(0, MAX_HISTORY_SIZE);
+                if (virtualOrderDurations.size() > this.virtualResults.size()) {
+                    this.virtualOrderDurations = this.virtualOrderDurations.subList(0, this.virtualResults.size());
                 }
                 
                 virtualOrderPrice = price;
-                virtualOrderDuration = time;
+                virtualOrderOpenTime = time;
             }
         }
         
@@ -425,50 +450,47 @@ public class TheCreeper implements IStrategy {
         }
         
         String getProfitStatus() {
-            return "[profit=$" + round(this.profit, 2) + ", win%=" + round(winPct(), 1) + "% [" + round(virtualWinPct(), 1) 
-                + "%], avgTradeDuration=" + round(this.avgTradeDuration(), 1) + "days [" + avgVirtualTradeDuration() + "days]]";
+            return "[profit=$" + this.round(this.profit, 2) + ", win%=" + round(this.winPct(), 1) + "% (" + this.round(virtualWinPct(), 1) 
+                + "% in " + this.virtualResults.size() + " results), avgTradeDuration=" + round(this.avgTradeDuration(), 1) + " days (" + round(this.avgVirtualTradeDuration(), 1) + " days)]";
+        }
+        
+        int getTotalTrades() {
+            return this.wins + this.losses;
         }
         
         double winPct() {
-            int totalTrades = wins + losses;
-            if (totalTrades == 0) {
+            if (this.getTotalTrades() == 0) {
                 return 0;
             } else {
-                return 100.0 * wins / totalTrades;
+                return 100.0 * this.wins / this.getTotalTrades();
             }
         }
         
         double avgTradeDuration() {
-            int totalTrades = wins + losses;
-            if (totalTrades == 0) {
+            if (this.getTotalTrades() == 0) {
                 return 0;
             } else {
-                return totalTradeDuration / totalTrades;
+                return 1.0 * this.totalTradeDuration / this.getTotalTrades() / MILLIS_IN_DAY;
             }
         }
         
         double virtualWinPct() {
-            if (this.virtualResults.size() < MAX_HISTORY_SIZE) {
+            if (this.virtualResults.size() < MIN_HISTORY_SIZE) {
                 return 0;
             }
             
-            int wins = 0;
-            for (Boolean result : this.virtualResults) {
-                if (result) {
-                    wins++;
-                }
-            }
+            long wins = this.virtualResults.stream().filter(r -> r > 0).count();
             return 100.0 * wins / this.virtualResults.size(); 
         }
         
         double avgVirtualTradeDuration() {
-            if (this.virtualOrderDurations.size() < MAX_HISTORY_SIZE) {
+            if (this.virtualOrderDurations.size() < MIN_HISTORY_SIZE) {
                 return 0;
             } else {
-                return virtualOrderDurations.stream()
-                        .mapToDouble(d -> d / MILLIS_IN_DAY)
-                        .average()
-                        .getAsDouble();
+                return this.virtualOrderDurations.stream()
+                    .mapToDouble(d -> 1.0 * d / MILLIS_IN_DAY)
+                    .average()
+                    .getAsDouble();
             }
         }
         
@@ -478,12 +500,12 @@ public class TheCreeper implements IStrategy {
         
         @Override
         public String toString() {
-            return this.instrument + " (" + this.strategyType + ")";
+            return this.instrument.name() + "_" + this.strategyType + "_" + this.takeProfitPips;
         }
 
         @Override
         public int compareTo(InstrumentStrategy strategy) {
-            return (int)(strategy.winPct() - this.winPct());
+            return (int)(strategy.virtualWinPct() - this.virtualWinPct());
         }
     }
 }

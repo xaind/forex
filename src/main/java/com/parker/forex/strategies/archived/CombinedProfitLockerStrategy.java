@@ -1,4 +1,4 @@
-package com.parker.forex.strategies;
+package com.parker.forex.strategies.archived;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

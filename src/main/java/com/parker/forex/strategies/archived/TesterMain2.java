@@ -27,7 +27,7 @@
  * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE,
  * EVEN IF DUKASCOPY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
-package com.parker.forex.strategies;
+package com.parker.forex.strategies.archived;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -45,6 +45,7 @@ import com.dukascopy.api.system.ISystemListener;
 import com.dukascopy.api.system.ITesterClient;
 import com.dukascopy.api.system.ITesterClient.DataLoadingMethod;
 import com.dukascopy.api.system.TesterFactory;
+import com.parker.forex.strategies.TheCreeper;
 
 /**
  * This small program demonstrates how to initialize Dukascopy tester and start
